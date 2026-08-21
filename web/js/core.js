@@ -64,10 +64,22 @@ async function boot() {
   const { data: { session } } = await supa.auth.getSession();
   if (!session) { $("loginScreen").style.display = "flex"; return; }
   S.user = session.user;
-  const { data: prof } = await supa.from("profiles").select("*").eq("id", S.user.id).single();
-  if (!prof) { $("loginErr").textContent = "帳號無 profile，請聯絡管理員"; return; }
+  let { data: prof } = await supa.from("profiles").select("*").eq("id", S.user.id).single();
+  if (!prof) {
+    await supa.from("profiles").insert({ id: S.user.id, display_name: (S.user.email || "user").split("@")[0] });
+    prof = (await supa.from("profiles").select("*").eq("id", S.user.id).single()).data;
+    if (!prof) { $("loginErr").textContent = "帳號初始化失敗，請聯絡系統商"; return; }
+  }
   S.profile = prof;
-  if (!prof.company_id) { $("loginErr").textContent = "帳號尚未指派租戶，請向老闆索取邀請碼或聯絡幻翔"; await supa.auth.signOut(); return; }
+  if (!prof.company_id) {
+    const code = prompt("此帳號尚未加入任何公司。請輸入邀請碼（老闆或系統商提供）：");
+    if (code) {
+      const { error: e2 } = await supa.rpc("redeem_invite", { p_code: code.trim() });
+      if (!e2) { location.reload(); return; }
+      $("loginErr").textContent = "邀請碼無效：" + e2.message;
+    } else { $("loginErr").textContent = "帳號尚未指派租戶，請向老闆索取邀請碼"; }
+    await supa.auth.signOut(); return;
+  }
   const { data: co } = await supa.from("companies").select("*, plans(*)").eq("id", prof.company_id).single();
   S.company = co; S.plan = co?.plans;
   // 功能開關（tenant_features 覆寫 plan）
