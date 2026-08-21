@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATLAS 全通路管理系統</title>
+<link rel="stylesheet" href="css/app.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<!-- ══════════ 登入 ══════════ -->
+<div class="login-wrap" id="loginScreen">
+  <div class="login-card">
+    <div class="logo-mark">🏛️</div>
+    <h2>ATLAS 全通路管理系統</h2>
+    <span class="mini">一份庫存帳本，扛起所有通路 · 幻翔商用設計</span>
+    <div class="login-err" id="loginErr"></div>
+    <div class="field"><label>Email</label><input id="loginEmail" type="email" autocomplete="username"></div>
+    <div class="field"><label>密碼</label><input id="loginPwd" type="password" autocomplete="current-password"></div>
+    <div class="field" id="inviteField" style="display:none"><label>邀請碼（老闆提供）</label><input id="inviteCode" placeholder="8 碼邀請碼"></div>
+    <button class="btn btn-p" style="width:100%;justify-content:center" id="loginBtn" onclick="doLogin()">登入</button>
+    <div style="text-align:center;margin-top:12px"><a href="#" id="toggleSignup" onclick="toggleSignup();return false">第一次使用？註冊帳號</a></div>
+  </div>
+</div>
+
+<div class="app" id="appRoot" style="display:none">
+  <!-- ══════════ 側邊欄 ══════════ -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">🏛️</div>
+      <div><b id="coName">ATLAS</b><small>ATLAS ERP v1.0</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-item active" data-page="dashboard"><span class="ico">📊</span><span class="t">儀表板</span></div>
+      <div class="nav-item" data-page="orders"><span class="ico">🧾</span><span class="t">多平台訂單整合</span><span class="cnt" id="cntOrders" style="display:none"></span></div>
+      <div class="nav-item" data-page="products"><span class="ico">📦</span><span class="t">商品 / 庫存</span></div>
+      <div class="nav-item" data-page="purchase"><span class="ico">🚚</span><span class="t">進貨採購</span></div>
+      <div class="nav-item" data-page="fulfill"><span class="ico">📮</span><span class="t">銷貨出貨</span></div>
+      <div class="nav-item" data-page="reports"><span class="ico">📈</span><span class="t">報表分析</span></div>
+      <div class="nav-item" data-page="customers"><span class="ico">👥</span><span class="t">客戶 / 會員</span></div>
+      <div class="nav-item" data-page="channels"><span class="ico">🔗</span><span class="t">平台串接設定</span></div>
+      <div class="nav-item" data-page="aics" id="navAics" style="display:none"><span class="ico">🤖</span><span class="t">AI 客服</span></div>
+      <div class="nav-item" data-page="users" id="navUsers" style="display:none"><span class="ico">🔐</span><span class="t">使用者權限</span></div>
+    </nav>
+    <div class="side-foot">ATLAS ERP v1.0.0<br>原始碼、資料庫 100% 歸屬客戶<br><a href="#" onclick="doLogout();return false" style="color:#8b93a2">登出 ↩</a></div>
+  </aside>
+
+  <!-- ══════════ 主畫面 ══════════ -->
+  <div class="main">
+    <div class="demo-strip" id="demoStrip" style="display:none">⚡ <b>示範租戶</b> — 資料為示範情境，操作皆為真實系統行為</div>
+    <header class="topbar">
+      <h1 id="pageTitle">儀表板</h1>
+      <div class="search"><input id="globalSearch" placeholder="搜尋訂單編號、商品、客戶…"></div>
+      <div class="top-right">
+        <span class="bell" id="bell" title="通知">🔔</span>
+        <div class="user">
+          <div class="avatar" id="userAvatar">?</div>
+          <div><b style="font-size:13px" id="userName">—</b><small id="userRole">—</small></div>
+        </div>
+      </div>
+    </header>
+    <main class="content">
+
+    <!-- ════════ 1. 儀表板 ════════ -->
+    <section class="page show" id="page-dashboard">
+      <div class="grid g4 mb16">
+        <div class="card kpi"><div class="bigico">💰</div><div class="lbl">今日營收（全通路）</div><div class="val" id="kToday">—</div><div class="delta" id="kTodayD"></div></div>
+        <div class="card kpi"><div class="bigico">📮</div><div class="lbl">待出貨訂單</div><div class="val" id="kShip">—</div><div class="delta down" id="kShipD"></div></div>
+        <div class="card kpi"><div class="bigico">⚠️</div><div class="lbl">低庫存警示</div><div class="val" id="kLow">—</div><div class="delta"><a href="#" onclick="go('purchase');return false">→ 前往補貨建議</a></div></div>
+        <div class="card kpi"><div class="bigico">📊</div><div class="lbl">本月毛利率（扣平台費）</div><div class="val" id="kMargin">—</div></div>
+      </div>
+      <div class="grid g32 mb16">
+        <div class="card">
+          <div class="card-h"><h3>近 14 日營收趨勢</h3><span class="sub">依通路</span></div>
+          <div class="card-b"><canvas id="chTrend" height="105"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>本月通路銷售占比</h3></div>
+          <div class="card-b" style="display:flex;justify-content:center"><canvas id="chDonut" height="210" style="max-height:220px"></canvas></div>
+        </div>
+      </div>
+      <div class="grid g32">
+        <div class="card">
+          <div class="card-h"><h3>最新跨通路訂單</h3><div class="right"><button class="btn btn-sm" onclick="go('orders')">查看全部</button></div></div>
+          <table><thead><tr><th>訂單編號</th><th>通路</th><th>客戶</th><th class="num">金額</th><th>狀態</th></tr></thead><tbody id="tbRecentOrders"></tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>低庫存 · 建議補貨</h3><div class="right"><button class="btn btn-sm btn-p" onclick="go('purchase')">一鍵開採購單</button></div></div>
+          <table><thead><tr><th>商品</th><th class="num">現有</th><th class="num">安全量</th><th class="num">近30日銷量</th></tr></thead><tbody id="tbLowStock"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ 2. 多平台訂單整合 ════════ -->
+    <section class="page" id="page-orders">
+      <div class="card mb16">
+        <div class="card-b" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <div class="tabs" id="orderTabs"></div>
+          <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn" onclick="openImportWizard()">⟳ 匯入訂單 (CSV)</button>
+            <button class="btn" onclick="printPickList()">🖨️ 批次列印出貨單</button>
+            <button class="btn" onclick="batchConfirm()">✅ 批次確認扣庫存</button>
+            <button class="btn" onclick="openPos()">🖥️ 門市 POS</button>
+            <button class="btn btn-p" onclick="openSocialOrder()">＋ 手動建單（社群/報價）</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <table id="orderTable"><thead><tr><th><input type="checkbox" id="ordCheckAll"></th><th>訂單編號</th><th>通路</th><th>客戶</th><th>商品明細</th><th class="num">金額</th><th>付款</th><th>出貨狀態</th><th>操作</th></tr></thead><tbody id="tbOrders"></tbody></table>
+        <div class="card-b hint">💡 防重複匯入：以「通路＋平台訂單編號」唯一鍵確保冪等；訂單確認後<b>只扣一次共用庫存</b>，並寫入不可竄改的庫存異動紀錄。</div>
+      </div>
+    </section>
+
+    <!-- ════════ 3. 商品/庫存 ════════ -->
+    <section class="page" id="page-products">
+      <div class="grid g4 mb16">
+        <div class="card kpi"><div class="bigico">📦</div><div class="lbl">商品總數（SKU）</div><div class="val" id="kSku">—</div></div>
+        <div class="card kpi"><div class="bigico">💵</div><div class="lbl">庫存總價值（成本）</div><div class="val" id="kStockVal">—</div></div>
+        <div class="card kpi"><div class="bigico">⚠️</div><div class="lbl">低庫存 / 呆滯品</div><div class="val" id="kLowStag">—</div></div>
+        <div class="card kpi"><div class="bigico">🔄</div><div class="lbl">庫存帳本</div><div class="val" style="font-size:16px;color:var(--ok)">✓ 異動加總制</div><div class="delta">現有量＝全部異動加總</div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>商品主檔</h3><span class="sub">單一主檔 · 全通路共用一份庫存</span>
+          <div class="right">
+            <button class="btn" onclick="openStocktake()">📷 盤點模式</button>
+            <button class="btn btn-p" onclick="openProductModal()">＋ 新增商品</button>
+          </div>
+        </div>
+        <table><thead><tr><th>SKU</th><th>商品名稱</th><th>分類</th><th class="num">成本</th><th class="num">售價</th><th class="num">庫存</th><th class="num">安全量</th><th>狀態</th><th>操作</th></tr></thead><tbody id="tbProducts"></tbody></table>
+        <div class="card-b hint">🔒 鐵則：庫存不可直接改數字 — 任何增減（銷售/進貨/盤點/退貨）都必須寫入一筆<b>庫存異動</b>（含原因、操作人、時間），現有量＝異動加總。</div>
+      </div>
+    </section>
+
+    <!-- ════════ 4. 進貨採購 ════════ -->
+    <section class="page" id="page-purchase">
+      <div class="grid g23 mb16">
+        <div class="card">
+          <div class="card-h"><h3>🤖 智慧補貨建議</h3><span class="sub">規則：近30日銷量 ÷ 30 × 前置天數 + 安全量 − 現有 − 在途</span></div>
+          <table><thead><tr><th>商品</th><th class="num">現有</th><th class="num">建議進貨</th><th>計算依據</th></tr></thead><tbody id="tbReplenish"></tbody></table>
+          <div class="card-b"><button class="btn btn-p" onclick="createPoDrafts()">⚡ 一鍵產生採購單草稿</button></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>月進貨 vs 銷貨</h3></div>
+          <div class="card-b"><canvas id="chPO" height="150"></canvas></div>
+        </div>
+      </div>
+      <div class="grid g32">
+        <div class="card">
+          <div class="card-h"><h3>採購單</h3><div class="right"><button class="btn btn-sm btn-p" onclick="openPoModal()">＋ 新增採購單</button></div></div>
+          <table><thead><tr><th>單號</th><th>供應商</th><th class="num">金額</th><th>預計到貨</th><th>狀態</th><th>操作</th></tr></thead><tbody id="tbPos"></tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>供應商 / 應付帳款</h3><div class="right"><button class="btn btn-sm" onclick="openSupplierModal()">＋ 供應商</button></div></div>
+          <table><thead><tr><th>供應商</th><th class="num">本月進貨</th><th class="num">未付款</th><th>付款週期</th></tr></thead><tbody id="tbSuppliers"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ 5. 銷貨出貨 ════════ -->
+    <section class="page" id="page-fulfill">
+      <div class="grid g4 mb16">
+        <div class="card kpi"><div class="bigico">📮</div><div class="lbl">待揀貨</div><div class="val" id="kPick">—</div></div>
+        <div class="card kpi"><div class="bigico">📦</div><div class="lbl">待出貨</div><div class="val" id="kPack">—</div></div>
+        <div class="card kpi"><div class="bigico">🚚</div><div class="lbl">配送中</div><div class="val" id="kTransit">—</div></div>
+        <div class="card kpi"><div class="bigico">↩️</div><div class="lbl">退換貨處理中</div><div class="val" id="kReturns">—</div></div>
+      </div>
+      <div class="card mb16">
+        <div class="card-h"><h3>出貨作業</h3>
+          <div class="right">
+            <button class="btn" onclick="genShipLabel('seven')">🏪 產生 7-11 資訊單</button>
+            <button class="btn" onclick="genShipLabel('tcat')">🐈‍⬛ 產生黑貓資訊單</button>
+            <button class="btn btn-p" onclick="batchInvoice()">🧾 批次開立電子發票</button>
+          </div>
+        </div>
+        <table><thead><tr><th><input type="checkbox" id="fulCheckAll"></th><th>訂單</th><th>通路</th><th>物流</th><th>進度</th><th>追蹤號 / 發票</th><th>操作</th></tr></thead><tbody id="tbFulfill"></tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>退換貨</h3><span class="sub">退貨自動產生反向庫存異動</span><div class="right"><button class="btn btn-sm" onclick="openReturnModal()">＋ 建立退換貨單</button></div></div>
+        <table><thead><tr><th>單號</th><th>原訂單</th><th>原因</th><th>狀態</th><th>庫存處理</th><th>操作</th></tr></thead><tbody id="tbReturns"></tbody></table>
+      </div>
+    </section>
+
+    <!-- ════════ 6. 報表分析 ════════ -->
+    <section class="page" id="page-reports">
+      <div class="card mb16">
+        <div class="card-h"><h3>各通路本月績效</h3><span class="sub">真實毛利 = 營收 − 成本 − 平台手續費 − 運費</span>
+          <div class="right"><button class="btn" onclick="exportReport()">📤 匯出 Excel</button></div></div>
+        <table><thead><tr><th>通路</th><th class="num">訂單數</th><th class="num">營收</th><th class="num">平台手續費</th><th class="num">真實毛利</th><th class="num">毛利率</th></tr></thead><tbody id="tbChPerf"></tbody></table>
+        <div class="card-b"><div class="callout" id="insightBox" style="display:none"></div></div>
+      </div>
+      <div class="grid g2">
+        <div class="card"><div class="card-h"><h3>熱銷商品 TOP 5（本月）</h3></div><div class="card-b"><canvas id="chTop" height="150"></canvas></div></div>
+        <div class="card"><div class="card-h"><h3>庫存健康度</h3></div>
+          <table><thead><tr><th>指標</th><th class="num">數值</th><th>評估</th></tr></thead><tbody id="tbHealth"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ 7. 客戶/會員 ════════ -->
+    <section class="page" id="page-customers">
+      <div class="grid g4 mb16">
+        <div class="card kpi"><div class="bigico">👥</div><div class="lbl">會員總數（跨通路合併）</div><div class="val" id="kCust">—</div></div>
+        <div class="card kpi"><div class="bigico">⭐</div><div class="lbl">VIP / 批發客戶</div><div class="val" id="kVip">—</div></div>
+        <div class="card kpi"><div class="bigico">🔁</div><div class="lbl">本月回購客</div><div class="val" id="kRepeat">—</div></div>
+        <div class="card kpi"><div class="bigico">💬</div><div class="lbl">LINE 綁定</div><div class="val" id="kLine">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>客戶列表</h3><span class="sub">同一客戶跨通路訂單自動歸戶</span>
+          <div class="right">
+            <button class="btn" id="btnMerge" onclick="showMergeSuggest()">🔀 智慧歸戶建議</button>
+            <button class="btn btn-p" onclick="openCustomerModal()">＋ 新增客戶</button>
+          </div></div>
+        <table><thead><tr><th>客戶</th><th>等級</th><th>來源通路</th><th class="num">累積消費</th><th class="num">訂單數</th><th>LINE</th><th>操作</th></tr></thead><tbody id="tbCustomers"></tbody></table>
+        <div class="card-b hint">💰 批發分級價：下單時依客戶等級自動帶入對應價格，門市 POS 與手動建單皆適用。</div>
+      </div>
+    </section>
+
+    <!-- ════════ 8. 平台串接設定 ════════ -->
+    <section class="page" id="page-channels">
+      <div class="grid g2 mb16" id="channelCards"></div>
+      <div class="card">
+        <div class="card-h"><h3>為什麼是這套，而不是市售套裝？</h3></div>
+        <div class="card-b grid g4" style="gap:12px">
+          <div class="callout"><b>100% 資產歸屬</b><br>原始碼、資料庫、部署文件全數交付，無綁定、無年費授權。</div>
+          <div class="callout"><b>完全貼合流程</b><br>依實際動線打造，客製調整不另計授權費。</div>
+          <div class="callout"><b>五通路合一</b><br>蝦皮/露天/Yahoo/社群/門市單一庫存帳本，杜絕超賣。</div>
+          <div class="callout"><b>無座位數限制</b><br>員工帳號不限數量，權限依角色設定。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ 9. AI 客服（旗艦版） ════════ -->
+    <section class="page" id="page-aics">
+      <div class="grid g4 mb16">
+        <div class="card kpi"><div class="bigico">🤖</div><div class="lbl">本月 AI 回覆額度</div><div class="val" id="kQuota">—</div><div class="quota-bar"><div class="fill" id="quotaFill" style="width:0%"></div></div></div>
+        <div class="card kpi"><div class="bigico">💬</div><div class="lbl">進行中對話</div><div class="val" id="kConvs">—</div></div>
+        <div class="card kpi"><div class="bigico">🙋</div><div class="lbl">待真人處理</div><div class="val" id="kHandoff">—</div></div>
+        <div class="card kpi"><div class="bigico">🔌</div><div class="lbl">已連線通路</div><div class="val" id="kCsCh">—</div></div>
+      </div>
+      <div class="grid g32">
+        <div class="card">
+          <div class="card-h"><h3>統一收件匣</h3><span class="sub">各通路對話合流 · 待真人置頂</span></div>
+          <table><thead><tr><th>通路</th><th>客戶</th><th>狀態</th><th>最後訊息</th><th>操作</th></tr></thead><tbody id="tbConvs"></tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>通路客服模式</h3><span class="sub">auto=全自動 / copilot=助理草稿</span></div>
+          <div class="card-b" id="csChannels"></div>
+          <div class="card-b hint">露天/Yahoo 無公開客服 API → 助理模式：貼上買家問題 → AI 依 ERP 資料生成回覆 → 一鍵複製貼回。蝦皮 Chat API 白名單核准後切 auto。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ 10. 使用者權限（老闆） ════════ -->
+    <section class="page" id="page-users">
+      <div class="grid g32">
+        <div class="card">
+          <div class="card-h"><h3>使用者</h3><span class="sub">帳號不限數量 · 權限依角色</span></div>
+          <table><thead><tr><th>姓名</th><th>角色</th><th>狀態</th><th>操作</th></tr></thead><tbody id="tbUsers"></tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>邀請新成員</h3></div>
+          <div class="card-b">
+            <div class="field"><label>角色</label><select id="inviteRole"><option value="store">門市</option><option value="shipping">出貨</option><option value="purchasing">採購</option><option value="owner">老闆</option></select></div>
+            <button class="btn btn-p" onclick="createInvite()">產生邀請碼</button>
+            <div id="inviteResult" class="callout" style="margin-top:12px;display:none"></div>
+            <div class="hint" style="margin-top:10px">新成員在登入頁點「註冊」，輸入 Email/密碼與此邀請碼即可加入。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="modalHost" onclick="if(event.target===this)closeModal()"><div class="modal" id="modalBox"></div></div>
+
+<script src="js/config.js"></script>
+<script src="js/core.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/actions.js"></script>
+</body>
+</html>
