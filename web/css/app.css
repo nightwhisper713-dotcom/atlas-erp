@@ -1,0 +1,141 @@
+/* 丸豐工具 · 全通路庫存管理系統 — 沿用 DEMO 骨架樣式 */
+:root{
+  --bg:#f2f4f7; --card:#ffffff; --line:#e5e8ee;
+  --ink:#1f2733; --ink2:#5b6674; --ink3:#939bab;
+  --brand:#c2410c; --brand2:#ea580c; --brand-soft:#fff1e8;
+  --side:#20242c; --side2:#2a2f39;
+  --ok:#16a34a; --warn:#d97706; --bad:#dc2626; --info:#2563eb;
+  --shopee:#ee4d2d; --ruten:#f5a623; --yahoo:#6001d2; --social:#1877f2; --store:#10893e;
+  --r:12px; --shadow:0 1px 3px rgba(16,24,40,.07),0 1px 2px rgba(16,24,40,.05);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+a{color:var(--info);text-decoration:none}
+.app{display:flex;min-height:100vh}
+/* ── Sidebar ── */
+.sidebar{width:220px;background:var(--side);color:#cbd2dd;flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid #343a45}
+.logo-mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--brand2),var(--brand));display:flex;align-items:center;justify-content:center;font-size:20px}
+.logo b{color:#fff;font-size:16px;letter-spacing:1px}
+.logo small{display:block;color:#8b93a2;font-size:11px;font-weight:400}
+.nav{flex:1;padding:10px 8px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:2px;color:#cbd2dd;font-size:14px;transition:.15s}
+.nav-item:hover{background:var(--side2);color:#fff}
+.nav-item.active{background:var(--brand);color:#fff;font-weight:500}
+.nav-item .ico{width:20px;text-align:center;font-size:15px}
+.nav-item .cnt{margin-left:auto;background:var(--bad);color:#fff;font-size:11px;border-radius:9px;padding:1px 7px}
+.side-foot{padding:12px 16px;border-top:1px solid #343a45;font-size:11px;color:#8b93a2;line-height:1.7}
+/* ── Topbar ── */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{background:var(--card);border-bottom:1px solid var(--line);padding:0 24px;height:56px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.topbar h1{font-size:17px;font-weight:700}
+.search{flex:1;max-width:360px;position:relative}
+.search input{width:100%;padding:8px 12px 8px 34px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:13px;font-family:inherit}
+.search::before{content:"🔍";position:absolute;left:10px;top:7px;font-size:13px;opacity:.5}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.bell{position:relative;cursor:pointer;font-size:18px}
+.user{display:flex;align-items:center;gap:8px;cursor:pointer}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:700}
+.user small{color:var(--ink3);display:block;font-size:11px}
+.demo-strip{background:#1e293b;color:#cbd5e1;text-align:center;font-size:12px;padding:5px}
+.demo-strip b{color:#fbbf24}
+/* ── Layout ── */
+.content{padding:24px;flex:1}
+.page{display:none}
+.page.show{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g2{grid-template-columns:1fr 1fr}
+.g32{grid-template-columns:3fr 2fr}
+.g23{grid-template-columns:2fr 3fr}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g2,.g32,.g23{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.card-h{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.card-h h3{font-size:14.5px;font-weight:700}
+.card-h .sub{color:var(--ink3);font-size:12px}
+.card-h .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.card-b{padding:16px 18px}
+.mb16{margin-bottom:16px}
+/* ── KPI ── */
+.kpi{padding:16px 18px;position:relative;overflow:hidden}
+.kpi .lbl{color:var(--ink2);font-size:12.5px;margin-bottom:6px}
+.kpi .val{font-size:25px;font-weight:800;letter-spacing:-.5px}
+.kpi .delta{font-size:12px;margin-top:5px}
+.kpi .delta.up{color:var(--ok)} .kpi .delta.down{color:var(--bad)}
+.kpi .bigico{position:absolute;right:12px;top:12px;font-size:26px;opacity:.85;background:var(--bg);border-radius:10px;width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+/* ── Table ── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--ink2);font-weight:600;padding:9px 10px;border-bottom:1px solid var(--line);background:#fafbfc;white-space:nowrap}
+td{padding:10px;border-bottom:1px solid #f0f2f5;vertical-align:middle}
+tr:hover td{background:#fafbfd}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+/* ── Badges/pills ── */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:2px 9px;border-radius:20px;font-weight:500;white-space:nowrap}
+.ch-shopee{background:#fdece8;color:var(--shopee)} .ch-ruten{background:#fef4e0;color:#b97407}
+.ch-yahoo{background:#f1e6fb;color:var(--yahoo)} .ch-social{background:#e7f0fe;color:var(--social)}
+.ch-store{background:#e5f4ea;color:var(--store)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.st{font-size:12px;padding:2px 9px;border-radius:6px;font-weight:500;white-space:nowrap}
+.st-ok{background:#e5f6ec;color:var(--ok)} .st-warn{background:#fdf3e2;color:var(--warn)}
+.st-bad{background:#fdeaea;color:var(--bad)} .st-info{background:#e8f0fe;color:var(--info)}
+.st-gray{background:#eef0f4;color:var(--ink2)}
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;transition:.15s}
+.btn:hover{border-color:#c9cfda;background:#f8f9fb}
+.btn-p{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn-p:hover{background:#a8380a;border-color:#a8380a}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:6px}
+.btn-ghost{border:none;background:none;color:var(--info);padding:4px 6px;cursor:pointer;font-family:inherit;font-size:13px}
+/* ── Misc ── */
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink2)}
+.tab.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:500}
+.bar-wrap{background:#eef0f4;border-radius:6px;height:8px;overflow:hidden}
+.bar{height:100%;border-radius:6px}
+.prog-steps{display:flex;align-items:center;gap:0;font-size:11px}
+.pstep{display:flex;flex-direction:column;align-items:center;gap:3px;width:60px;color:var(--ink3)}
+.pstep .pc{width:18px;height:18px;border-radius:50%;background:#e5e8ee;display:flex;align-items:center;justify-content:center;font-size:10px}
+.pstep.done{color:var(--ok)} .pstep.done .pc{background:var(--ok);color:#fff}
+.pstep.cur{color:var(--brand)} .pstep.cur .pc{background:var(--brand);color:#fff}
+.pline{flex:1;height:2px;background:#e5e8ee;min-width:14px;margin-bottom:14px}
+.pline.done{background:var(--ok)}
+canvas{max-width:100%}
+.toast{position:fixed;bottom:24px;right:24px;background:#1f2733;color:#fff;padding:12px 18px;border-radius:10px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);transition:.3s;z-index:200;pointer-events:none;max-width:340px}
+.toast.show{opacity:1;transform:none}
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:14px;width:520px;max-width:92vw;max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal .card-h{position:sticky;top:0;background:#fff;z-index:2}
+.x{margin-left:auto;cursor:pointer;font-size:18px;color:var(--ink3);border:none;background:none}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12.5px;color:var(--ink2);margin-bottom:5px;font-weight:500}
+.field input,.field select,.field textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;background:#fff}
+.hint{font-size:12px;color:var(--ink3)}
+.callout{border-left:3px solid var(--brand);background:var(--brand-soft);border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;line-height:1.7}
+.tag{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--ink2);background:#fff}
+.sync-dots{display:flex;gap:4px}
+.mini{font-size:12px;color:var(--ink3)}
+@media(max-width:860px){.sidebar{width:64px}.sidebar .logo b,.sidebar .logo small,.nav-item span.t,.side-foot,.nav-item .cnt{display:none}.nav-item{justify-content:center}}
+
+/* ══ 新增：登入畫面 ══ */
+.login-wrap{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:500}
+.login-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);width:380px;max-width:92vw;padding:32px}
+.login-card .logo-mark{margin:0 auto 14px;width:52px;height:52px;font-size:26px}
+.login-card h2{text-align:center;font-size:18px;margin-bottom:4px}
+.login-card .mini{text-align:center;display:block;margin-bottom:20px}
+.login-err{color:var(--bad);font-size:12.5px;margin-bottom:10px;min-height:16px}
+/* ══ 新增：CSV 匯入精靈 ══ */
+.wizard-drop{border:2px dashed var(--line);border-radius:12px;padding:26px;text-align:center;color:var(--ink3);cursor:pointer;transition:.15s}
+.wizard-drop:hover{border-color:var(--brand);color:var(--brand)}
+.map-row{display:grid;grid-template-columns:1fr 24px 1fr;gap:8px;align-items:center;margin-bottom:8px;font-size:13px}
+.preview-box{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+/* ══ 新增：POS ══ */
+.pos-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.pos-cart{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.pos-total{font-size:22px;font-weight:800;text-align:right;padding:10px 14px}
+/* ══ 新增：AI 客服 ══ */
+.quota-bar{background:#eef0f4;border-radius:8px;height:12px;overflow:hidden;margin-top:6px}
+.quota-bar .fill{height:100%;background:linear-gradient(90deg,var(--brand2),var(--brand))}
+.empty{padding:34px;text-align:center;color:var(--ink3);font-size:13px}
+.clickable{cursor:pointer}
