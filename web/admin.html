@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATLAS 營運後台</title>
+<link rel="stylesheet" href="css/app.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<div class="login-wrap" id="loginScreen">
+  <div class="login-card">
+    <div class="logo-mark">🏛️</div>
+    <h2>ATLAS 營運後台</h2>
+    <span class="mini">幻翔商用設計 · 僅限系統管理員</span>
+    <div class="login-err" id="loginErr"></div>
+    <div class="field"><label>Email</label><input id="loginEmail" type="email"></div>
+    <div class="field"><label>密碼</label><input id="loginPwd" type="password"></div>
+    <button class="btn btn-p" style="width:100%;justify-content:center" onclick="doLogin()">登入</button>
+  </div>
+</div>
+
+<div class="app" id="appRoot" style="display:none">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">🏛️</div>
+      <div><b>ATLAS</b><small>營運後台 Operator</small></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active"><span class="ico">🏢</span><span class="t">租戶與成本</span></div>
+    </nav>
+    <div class="side-foot">幻翔商用設計有限公司<br><a href="#" onclick="doLogout();return false" style="color:#8b93a2">登出 ↩</a></div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1>租戶總表 · 方案 · 成本毛利</h1>
+      <div class="top-right"><div class="user"><div class="avatar">幻</div><div><b style="font-size:13px" id="userName">—</b><small>superadmin</small></div></div></div>
+    </header>
+    <main class="content">
+      <div class="grid g4 mb16">
+        <div class="card kpi"><div class="bigico">🏢</div><div class="lbl">租戶數</div><div class="val" id="kTenants">—</div></div>
+        <div class="card kpi"><div class="bigico">💰</div><div class="lbl">本月 MRR（月費合計）</div><div class="val" id="kMrr">—</div></div>
+        <div class="card kpi"><div class="bigico">🔥</div><div class="lbl">本月 API 成本合計</div><div class="val" id="kCost">—</div></div>
+        <div class="card kpi"><div class="bigico">📈</div><div class="lbl">本月毛利（MRR − API）</div><div class="val" id="kMargin">—</div></div>
+      </div>
+      <div class="card mb16">
+        <div class="card-h"><h3>租戶列表</h3><span class="sub">方案切換即時生效 · AI 開關 = tenant_features 覆寫</span>
+          <div class="right"><button class="btn btn-p" onclick="openProvision()">＋ 開通新租戶</button></div></div>
+        <table><thead><tr><th>租戶</th><th>方案</th><th>狀態</th><th class="num">本月訂單</th><th>AI 客服</th><th class="num">AI 額度餘</th><th class="num">本月 API 成本</th><th class="num">本月毛利</th></tr></thead><tbody id="tbTenants"></tbody></table>
+        <div class="card-b hint">💡 成本控管：每次 LLM 呼叫寫入 cs_usage_events；額度用罄自動降級為罐頭＋轉真人。異常燒錢（成本逼近月費）列會標紅。</div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>方案定義</h3><span class="sub">修改後對所有該方案租戶生效</span></div>
+        <table><thead><tr><th>方案</th><th class="num">月費 NT$</th><th>AI 客服</th><th class="num">AI 額度/月</th><th></th></tr></thead><tbody id="tbPlans"></tbody></table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="modalHost" onclick="if(event.target===this)closeModal()"><div class="modal" id="modalBox"></div></div>
+
+<script src="js/config.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
