@@ -70,6 +70,7 @@ async function boot() {
     prof = (await supa.from("profiles").select("*").eq("id", S.user.id).single()).data;
     if (!prof) { $("loginErr").textContent = "帳號初始化失敗，請聯絡系統商"; return; }
   }
+  if (prof.is_active === false) { $("loginErr").textContent = "此帳號已被停用，請聯絡管理者"; await supa.auth.signOut(); return; }
   S.profile = prof;
   if (!prof.company_id) {
     const code = prompt("此帳號尚未加入任何公司。請輸入邀請碼（老闆或系統商提供）：");
@@ -81,6 +82,10 @@ async function boot() {
     await supa.auth.signOut(); return;
   }
   const { data: co } = await supa.from("companies").select("*, plans(*)").eq("id", prof.company_id).single();
+  if (co && (co.status === "suspended" || co.status === "closed") && prof.role !== "superadmin") {
+    $("loginErr").textContent = co.status === "suspended" ? "貴公司帳戶已暫停服務，請聯絡系統商" : "貴公司帳戶已結束服務";
+    await supa.auth.signOut(); return;
+  }
   S.company = co; S.plan = co?.plans;
   // 功能開關（tenant_features 覆寫 plan）
   S.features = { ...(S.plan?.features || {}) };
