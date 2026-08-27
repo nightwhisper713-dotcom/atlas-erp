@@ -81,7 +81,7 @@ tr:hover td{background:#fafbfd}
 .st-bad{background:#fdeaea;color:var(--bad)} .st-info{background:#e8f0fe;color:var(--info)}
 .st-gray{background:#eef0f4;color:var(--ink2)}
 /* ── Buttons ── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;transition:.15s}
+.btn{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;transition:.15s}
 .btn:hover{border-color:#c9cfda;background:#f8f9fb}
 .btn-p{background:var(--brand);border-color:var(--brand);color:#fff}
 .btn-p:hover{background:#a8380a;border-color:#a8380a}
