@@ -29,7 +29,8 @@
 
 <div class="app" id="appRoot" style="display:none">
   <!-- ══════════ 側邊欄 ══════════ -->
-  <aside class="sidebar">
+  <div class="nav-backdrop" id="navBackdrop" onclick="closeNav()"></div>
+  <aside class="sidebar" id="sidebar">
     <div class="logo">
       <div class="logo-mark">🏛️</div>
       <div><b id="coName">ATLAS</b><small>ATLAS ERP v1.0</small></div>
@@ -53,6 +54,7 @@
   <div class="main">
     <div class="demo-strip" id="demoStrip" style="display:none">⚡ <b>示範租戶</b> — 資料為示範情境，操作皆為真實系統行為</div>
     <header class="topbar">
+      <button class="menu-btn" onclick="toggleNav()" aria-label="選單">☰</button>
       <h1 id="pageTitle">儀表板</h1>
       <div class="search"><input id="globalSearch" placeholder="搜尋訂單編號、商品、客戶…"></div>
       <div class="top-right">
@@ -100,7 +102,7 @@
       <div class="card mb16">
         <div class="card-b" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <div class="tabs" id="orderTabs"></div>
-          <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+          <div class="btn-row">
             <button class="btn" onclick="openImportWizard()">⟳ 匯入訂單 (CSV)</button>
             <button class="btn" onclick="printPickList()">🖨️ 批次列印出貨單</button>
             <button class="btn" onclick="batchConfirm()">✅ 批次確認扣庫存</button>
