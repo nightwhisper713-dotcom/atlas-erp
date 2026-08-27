@@ -6,7 +6,20 @@ const nt = (n) => "NT$ " + Math.round(Number(n || 0)).toLocaleString();
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let tt;
 function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 3600); }
-function openModal(h) { $("modalBox").innerHTML = h; $("modalHost").classList.add("show"); }
+function wrapTables(root) {
+  (root || document).querySelectorAll("table").forEach((t) => {
+    if (t.parentElement && t.parentElement.classList.contains("tw")) return;
+    const w = document.createElement("div"); w.className = "tw";
+    t.parentNode.insertBefore(w, t); w.appendChild(t);
+  });
+}
+function toggleNav() {
+  const open = !$("sidebar").classList.contains("open");
+  $("sidebar").classList.toggle("open", open);
+  $("navBackdrop").classList.toggle("show", open);
+}
+function closeNav() { $("sidebar").classList.remove("open"); $("navBackdrop").classList.remove("show"); }
+function openModal(h) { $("modalBox").innerHTML = h; wrapTables($("modalBox")); $("modalHost").classList.add("show"); }
 function closeModal() { $("modalHost").classList.remove("show"); }
 const ROLES = { owner: "老闆", store: "門市", shipping: "出貨", purchasing: "採購" };
 const ST = { trial: ["試用", "st-info"], active: ["啟用", "st-ok"], suspended: ["停權", "st-bad"], closed: ["結束", "st-gray"] };
@@ -69,6 +82,7 @@ async function render() {
     <td>${p.features?.ai_cs ? '<span class="st st-ok">含</span>' : '<span class="st st-gray">不含</span>'}</td>
     <td class="num"><input type="number" value="${p.features?.ai_quota ?? 0}" style="width:90px;text-align:right;padding:4px;border:1px solid var(--line);border-radius:6px" onchange="setPlanQuota('${p.id}', +this.value)"></td>
     <td class="mini">修改即存</td></tr>`).join("");
+  wrapTables();
 }
 
 /* ── 租戶管理面板（使用者／邀請碼／刪除） ── */
@@ -106,6 +120,7 @@ async function mgLoadUsers(coId) {
       <td>${u.is_active ? '<span class="st st-ok">啟用</span>' : '<span class="st st-gray">停用</span>'}</td>
       <td><button class="btn-ghost" onclick="mgToggleUser('${u.uid}', ${!u.is_active}, '${coId}')">${u.is_active ? "停用" : "啟用"}</button></td></tr>`).join("") +
     `</tbody></table>` : `<span class="mini">此租戶尚無使用者——產生邀請碼請客戶註冊。</span>`;
+  wrapTables($("mgUsers"));
 }
 async function mgLoadInvites(coId) {
   const { data, error } = await supa.from("invite_codes").select("*").eq("company_id", coId).order("created_at", { ascending: false });
@@ -115,6 +130,7 @@ async function mgLoadInvites(coId) {
       <td>${c.used_by ? '<span class="st st-gray">已使用</span>' : '<span class="st st-ok">可使用</span>'}</td>
       <td>${!c.used_by ? `<button class="btn-ghost" style="color:var(--bad)" onclick="mgDropInvite('${c.code}', '${coId}')">作廢</button>` : ""}</td></tr>`).join("") +
     `</tbody></table>` : `<span class="mini">尚無邀請碼。</span>`;
+  wrapTables($("mgInvites"));
 }
 async function mgCreateInvite(coId) {
   const { data, error } = await supa.rpc("operator_create_invite", { p_company: coId, p_role: $("mgInvRole").value });
