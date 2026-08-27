@@ -25,8 +25,30 @@ function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add
 function chChip(code) { const c = CH_STYLE[code] || { chip: "ch-store", name: code }; return `<span class="chip ${c.chip}">${c.name}</span>`; }
 function stBadge(map, key) { const [t, cls] = map[key] || [key, "st-gray"]; return `<span class="st ${cls}">${t}</span>`; }
 
+// ── 表格自動包上橫向捲動容器（RWD）──
+function wrapTables(root) {
+  (root || document).querySelectorAll("table").forEach((t) => {
+    if (t.parentElement && t.parentElement.classList.contains("tw")) return;
+    const w = document.createElement("div");
+    w.className = "tw";
+    t.parentNode.insertBefore(w, t);
+    w.appendChild(t);
+  });
+}
+
+// ── 手機側邊選單（抽屜）──
+function toggleNav() {
+  const open = !$("sidebar").classList.contains("open");
+  $("sidebar").classList.toggle("open", open);
+  $("navBackdrop").classList.toggle("show", open);
+}
+function closeNav() {
+  $("sidebar").classList.remove("open");
+  $("navBackdrop").classList.remove("show");
+}
+
 // ── Modal（單一 host，內容動態）──
-function openModal(html) { $("modalBox").innerHTML = html; $("modalHost").classList.add("show"); }
+function openModal(html) { $("modalBox").innerHTML = html; wrapTables($("modalBox")); $("modalHost").classList.add("show"); }
 function closeModal() { $("modalHost").classList.remove("show"); }
 
 // ── 登入 ──
@@ -118,7 +140,9 @@ function go(p) {
   document.querySelectorAll(".page").forEach((s) => s.classList.toggle("show", s.id === "page-" + p));
   $("pageTitle").textContent = TITLES[p];
   window.scrollTo({ top: 0 });
-  LOADERS[p]?.().catch((e) => toast("⚠️ 載入失敗：" + (e.message || e)));
+  closeNav();
+  wrapTables();
+  Promise.resolve(LOADERS[p]?.()).then(() => wrapTables()).catch((e) => toast("⚠️ 載入失敗：" + (e.message || e)));
 }
 document.querySelectorAll("#nav .nav-item").forEach((n) => (n.onclick = () => go(n.dataset.page)));
 
