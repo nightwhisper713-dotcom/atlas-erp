@@ -96,7 +96,7 @@ async function openManage(coId) {
       <div class="hint" style="margin:6px 0 14px">🔒 密碼以不可逆雜湊儲存，任何人（含系統商）皆無法檢視；使用者忘記密碼時，至 Supabase → Authentication 對該帳號發送「重設密碼信」即可。停用帳號立即擋登入。</div>
       <h3 style="font-size:13px;margin-bottom:6px">邀請碼</h3>
       <div id="mgInvites" class="mini">載入中…</div>
-      <div style="display:flex;gap:8px;align-items:center;margin:8px 0 16px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 16px">
         <select id="mgInvRole" style="padding:5px 8px;border:1px solid var(--line);border-radius:6px">${Object.entries(ROLES).map(([r, n]) => `<option value="${r}">${n}</option>`).join("")}</select>
         <button class="btn btn-sm btn-p" onclick="mgCreateInvite('${coId}')">＋ 產生邀請碼</button>
         <span class="mini">新成員在前台「註冊」輸入邀請碼即加入（一碼一人，密碼由本人設定）</span>
