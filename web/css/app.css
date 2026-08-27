@@ -170,8 +170,8 @@ canvas{max-width:100%}
   .nav-item{padding:12px}
   /* 表格改為卡片內橫向捲動，頁面本身不再左右跑版 */
   .tw{border-radius:0 0 var(--r) var(--r)}
-  .tw table{min-width:660px}
-  #orderTable{min-width:760px}
+  .tw td,.tw th{white-space:nowrap}          /* 單號、品名不再被折成兩行 */
+  .tw td .chip,.tw td .st{vertical-align:middle}
   /* 卡片標題／工具列 */
   .card-h{flex-wrap:wrap;padding:12px 14px;gap:8px}
   .card-h .right{margin-left:0;width:100%;flex-wrap:wrap}
@@ -179,7 +179,8 @@ canvas{max-width:100%}
   .card-b{padding:12px 14px}
   .btn-row{margin-left:0;width:100%}
   .btn-row .btn{flex:1 1 46%;justify-content:center}
-  .tabs{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
+  .tabs{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
   .tab{white-space:nowrap}
   /* KPI */
   .g4{grid-template-columns:repeat(2,1fr)}
