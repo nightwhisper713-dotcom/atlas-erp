@@ -23,7 +23,17 @@ async function batchConfirm() {
   const ids = [...document.querySelectorAll(".ordChk:checked")].map((c) => c.dataset.id);
   if (!ids.length) return toast("請先勾選要確認的訂單");
   const { data, error } = await supa.rpc("confirm_orders", { p_ids: ids });
-  toast(error ? "⚠️ " + error.message : `✅ 批次確認完成：${data} 筆已扣庫存`);
+  if (error) { toast("⚠️ " + error.message); LOADERS.orders(); return; }
+  // migration 013 起回傳 { confirmed, failed: [{ id, code, message }] }
+  const n = typeof data === "number" ? data : data?.confirmed ?? 0;
+  const failed = Array.isArray(data?.failed) ? data.failed : [];
+  if (failed.length) {
+    const noById = Object.fromEntries([...document.querySelectorAll(".ordChk")].map((c) => [c.dataset.id, c.dataset.no || c.dataset.id]));
+    const detail = failed.slice(0, 5).map((f) => `${noById[f.id] || f.id}：${f.message}`).join("；");
+    toast(`⚠️ 已確認 ${n} 筆，${failed.length} 筆失敗 — ${detail}${failed.length > 5 ? "…" : ""}`);
+  } else {
+    toast(`✅ 批次確認完成：${n} 筆已扣庫存`);
+  }
   LOADERS.orders();
 }
 
