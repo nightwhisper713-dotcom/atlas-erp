@@ -1,0 +1,12 @@
+# Dependabot：每週檢查 GitHub Actions 版本與安全性更新
+# （本 repo 無 package.json；Edge Function 以 Deno `npm:` 匯入，Dependabot 尚不支援，需人工追蹤）
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      timezone: "Asia/Taipei"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
