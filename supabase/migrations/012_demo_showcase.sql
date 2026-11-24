@@ -336,7 +336,7 @@ begin
     insert into cs_usage_events (company_id, channel, model, stage, input_tokens, output_tokens, cached_tokens, cost_ntd, created_at)
     values (v_co,
             (array['line','web','messenger'])[(i % 3) + 1],
-            case when i % 5 = 0 then 'claude-sonnet-4-5' else 'claude-haiku-4-5' end,
+            case when i % 5 = 0 then 'claude-sonnet-5-5' else 'claude-haiku-4-5' end,
             (array['intent','rag','big','summary'])[(i % 4) + 1],
             800 + (i * 137) % 2200, 120 + (i * 53) % 380, (i * 211) % 1500,
             case when i % 5 = 0 then 0.9 + (i % 7) * 0.18 else 0.06 + (i % 9) * 0.02 end,
